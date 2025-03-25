@@ -1,5 +1,6 @@
 {
   "files.associations": {
-    "memory_resource": "cpp"
+    "memory_resource": "cpp",
+    "ranges": "c"
   }
 }
