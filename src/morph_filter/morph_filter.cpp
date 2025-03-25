@@ -37,7 +37,8 @@ obs_properties_t *morph_filter_properties(void *data)
   return props;
 }
 
-void morph_filter_defaults(obs_data_t *settings);
+// void morph_filter_defaults(obs_data_t *settings);
+void (*video_render)(void *data, gs_effect_t *effect);
 
 void morph_filter_render(void *data)
 {
@@ -46,6 +47,11 @@ void morph_filter_render(void *data)
     return;
 
   obs_source_video_render(filter->source);
+}
+
+void morph_filter_defaults(obs_data_t *settings)
+{
+  obs_data_set_default_double(settings, "jaw_width", 0.0);
 }
 
 obs_source_info morph_filter_info = {
@@ -66,8 +72,3 @@ obs_source_info morph_filter_info = {
 
     morph_filter_render // video_render
 };
-
-void morph_filter_defaults(obs_data_t *settings)
-{
-  obs_data_set_default_double(settings, "jaw_width", 0.0);
-}
