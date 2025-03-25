@@ -5,7 +5,10 @@
       "includePath": [
         "${workspaceFolder}/**",
         "${workspaceFolder}/../obs-studio/libobs",
-        "${workspaceFolder}/../obs-studio/deps"
+        "${workspaceFolder}/../obs-studio/libobs/util",
+        "${workspaceFolder}/../obs-studio/libobs/graphics",
+        "${workspaceFolder}/../obs-studio/deps",
+        "${workspaceFolder}/../obs-studio/plugins"
       ],
       "defines": [],
       "compilerPath": "/usr/bin/g++",
