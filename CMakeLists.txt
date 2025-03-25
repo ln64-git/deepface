@@ -10,9 +10,9 @@ include_directories(
 )
 
 add_library(deepface_filter MODULE
-    plugin.cpp
-    morph_filter.cpp
-    morph_filter.h
+    src/plugin.cpp
+    src/morph_filter/morph_filter.cpp
+    src/morph_filter/morph_filter.h
 )
 
 set_target_properties(deepface_filter PROPERTIES PREFIX "")

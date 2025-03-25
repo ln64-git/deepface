@@ -1,5 +1,5 @@
 #include <obs-module.h>
-#include "../morph_filter/morph_filter.h"
+#include "morph_filter/morph_filter.h"
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("deepface-filter", "en-US")
