@@ -3,21 +3,16 @@ project(face_morph_filter)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(obs REQUIRED)
-find_package(OpenCV REQUIRED)
+include_directories(
+    ${CMAKE_SOURCE_DIR}/../obs-studio/libobs
+    ${CMAKE_SOURCE_DIR}/../obs-studio/UI
+    ${CMAKE_SOURCE_DIR}/../obs-studio/deps
+)
 
-add_library(face_morph_filter MODULE
+add_library(deepface_filter MODULE
     plugin.cpp
     morph_filter.cpp
     morph_filter.h
 )
 
-target_include_directories(face_morph_filter PRIVATE
-    ${OBS_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
-)
-
-target_link_libraries(face_morph_filter
-    ${OBS_LIBRARIES}
-    ${OpenCV_LIBS}
-)
+set_target_properties(deepface_filter PROPERTIES PREFIX "")
