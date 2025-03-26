@@ -43,7 +43,7 @@ public:
 
   void render(gs_effect_t *effect)
   {
-    blog(LOG_INFO, TAG "render");
+    // blog(LOG_INFO, TAG "render");
     if (!source_)
       return;
 

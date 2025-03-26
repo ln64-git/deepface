@@ -8,7 +8,10 @@
         "${workspaceFolder}/../obs-studio/libobs/util",
         "${workspaceFolder}/../obs-studio/libobs/graphics",
         "${workspaceFolder}/../obs-studio/deps",
-        "${workspaceFolder}/../obs-studio/plugins"
+        "${workspaceFolder}/../obs-studio/plugins",
+        "/usr/include/opencv4",
+        "/usr/include", // for onnxruntime_cxx_api.h
+        "/usr/include/onnxruntime" // optional if deeper access needed
       ],
       "defines": [],
       "compilerPath": "/usr/bin/g++",
