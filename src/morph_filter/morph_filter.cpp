@@ -8,13 +8,18 @@
 #define TAG "[Deepface-filter] "
 
 #include "landmark_detector/landmark_detector.h" // 👈 Add this
+extern "C"
+{
+#include <graphics/effect.h>   // 🔑 Required for gs_effect_get_technique_by_name
+#include <graphics/graphics.h> // Also grants access to gs_draw_sprite etc.
+}
 
 class MorphFilter
 {
 public:
   MorphFilter(obs_source_t *source, obs_data_t *settings)
       : source_(source), eye_spacing_(0.0f),
-        detector_("models/face_landmarks.onnx") // 👈 Adjust path as needed
+        detector_("../../models/face_landmarks.onnx") // 👈 Adjust path as needed
   {
     blog(LOG_INFO, TAG "create");
     update(settings);
@@ -57,29 +62,52 @@ public:
 
     gs_texrender_t *texrender = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
     gs_texrender_reset(texrender);
-    if (gs_texrender_begin(texrender, width, height))
+
+    if (!gs_texrender_begin(texrender, width, height))
     {
-      obs_source_video_render(obs_filter_get_target(source_));
-      gs_texrender_end(texrender);
+      gs_texrender_destroy(texrender);
+      return;
     }
 
+    obs_source_video_render(obs_filter_get_target(source_));
+    gs_texrender_end(texrender);
+
     gs_texture_t *tex = gs_texrender_get_texture(texrender);
+    if (!tex)
+    {
+      gs_texrender_destroy(texrender);
+      return;
+    }
+
     uint8_t *data = nullptr;
     uint32_t linesize = 0;
-
-    if (gs_texture_map(tex, &data, &linesize))
+    if (!gs_texture_map(tex, &data, &linesize))
     {
-      cv::Mat rgba(height, width, CV_8UC4, data, linesize);
-      cv::Mat bgr;
-      cv::cvtColor(rgba, bgr, cv::COLOR_RGBA2BGR);
+      gs_texrender_destroy(texrender);
+      return;
+    }
 
-      auto landmarks = detector_.detect(bgr);
-      blog(LOG_INFO, TAG "Landmarks detected: %zu", landmarks.size());
+    cv::Mat rgba(height, width, CV_8UC4, data, linesize);
+    cv::Mat bgr;
+    cv::cvtColor(rgba, bgr, cv::COLOR_RGBA2BGR);
+    gs_texture_unmap(tex);
 
-      // TODO: morph logic using landmarks
+    auto landmarks = detector_.detect(bgr);
+    for (const auto &pt : landmarks)
+    {
+      cv::circle(bgr, pt, 2, cv::Scalar(0, 255, 0), -1);
+    }
 
-      gs_texture_unmap(tex);
-      bfree(data);
+    cv::cvtColor(bgr, rgba, cv::COLOR_BGR2RGBA);
+    gs_texture_set_image(tex, rgba.data, rgba.step.p[0], false);
+
+    // 👇 This is the fix:
+    gs_eparam_t *image = gs_effect_get_param_by_name(effect, "image");
+    gs_effect_set_texture(image, tex);
+
+    while (gs_effect_loop(effect, "Draw"))
+    {
+      gs_draw_sprite(tex, 0, width, height);
     }
 
     gs_texrender_destroy(texrender);
