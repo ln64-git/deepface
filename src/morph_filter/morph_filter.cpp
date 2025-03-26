@@ -1,4 +1,5 @@
 #include "morph_filter.h"
+#include <opencv2/imgproc.hpp>
 
 #include <obs-module.h>
 #include <util/platform.h>
@@ -6,11 +7,14 @@
 
 #define TAG "[Deepface-filter] "
 
+#include "landmark_detector/landmark_detector.h" // 👈 Add this
+
 class MorphFilter
 {
 public:
   MorphFilter(obs_source_t *source, obs_data_t *settings)
-      : source_(source), eye_spacing_(0.0f)
+      : source_(source), eye_spacing_(0.0f),
+        detector_("models/face_landmarks.onnx") // 👈 Adjust path as needed
   {
     blog(LOG_INFO, TAG "create");
     update(settings);
@@ -29,7 +33,7 @@ public:
 
   obs_properties_t *get_properties() const
   {
-    blog(LOG_INFO, TAG "properties");
+    blog(LOG_INFO, TAG "properties"); // Is this being logged?
     obs_properties_t *props = obs_properties_create();
     obs_properties_add_float_slider(props, "eye_spacing", "Eye Spacing", -50.0, 50.0, 1.0);
     return props;
@@ -43,18 +47,48 @@ public:
 
   void render(gs_effect_t *effect)
   {
-    // blog(LOG_INFO, TAG "render");
     if (!source_)
       return;
 
-    obs_source_t *target = obs_filter_get_target(source_);
-    if (target)
-      obs_source_video_render(target);
+    uint32_t width = obs_source_get_width(source_);
+    uint32_t height = obs_source_get_height(source_);
+    if (width == 0 || height == 0)
+      return;
+
+    gs_texrender_t *texrender = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
+    gs_texrender_reset(texrender);
+    if (gs_texrender_begin(texrender, width, height))
+    {
+      obs_source_video_render(obs_filter_get_target(source_));
+      gs_texrender_end(texrender);
+    }
+
+    gs_texture_t *tex = gs_texrender_get_texture(texrender);
+    uint8_t *data = nullptr;
+    uint32_t linesize = 0;
+
+    if (gs_texture_map(tex, &data, &linesize))
+    {
+      cv::Mat rgba(height, width, CV_8UC4, data, linesize);
+      cv::Mat bgr;
+      cv::cvtColor(rgba, bgr, cv::COLOR_RGBA2BGR);
+
+      auto landmarks = detector_.detect(bgr);
+      blog(LOG_INFO, TAG "Landmarks detected: %zu", landmarks.size());
+
+      // TODO: morph logic using landmarks
+
+      gs_texture_unmap(tex);
+      bfree(data);
+    }
+
+    gs_texrender_destroy(texrender);
   }
 
 private:
   obs_source_t *source_;
   float eye_spacing_;
+  LandmarkDetector detector_; // 👈 ONNX landmark detector
 };
 
 extern "C"

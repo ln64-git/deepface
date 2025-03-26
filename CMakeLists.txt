@@ -5,9 +5,11 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Include OBS headers
 include_directories(
-    ${CMAKE_SOURCE_DIR}/../obs-studio/libobs
-    ${CMAKE_SOURCE_DIR}/../obs-studio/UI
-    ${CMAKE_SOURCE_DIR}/../obs-studio/deps
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/src/landmark_detector
+  ${CMAKE_SOURCE_DIR}/../obs-studio/libobs
+  ${CMAKE_SOURCE_DIR}/../obs-studio/UI
+  ${CMAKE_SOURCE_DIR}/../obs-studio/deps
 )
 
 # Add all source files
